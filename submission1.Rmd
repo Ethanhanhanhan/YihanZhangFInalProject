@@ -1,0 +1,92 @@
+---
+title: "Submisson1"
+author: "Ethan Zhang"
+date: '2024-07-27'
+output: pdf_document
+---
+## R Markdown
+
+```{r setup, include=FALSE}
+# Load necessary libraries
+library(ggplot2)
+library(tidyverse)
+```
+
+```{r cars}
+new_gene <- read.csv("/Users/zhyihan/Documents/Dartmouth Life/courses/QBS 103- Data Science/final project/QBS103_GSE157103_genes.csv")
+ser_m <-read.csv("/Users/zhyihan/Documents/Dartmouth Life/courses/QBS 103- Data Science/final project/QBS103_GSE157103_series_matrix.csv")
+
+#### I select "ABCA1" gene, and then convert wide to long
+new_gene_long <- new_gene %>% filter(X == 'ABCA1') %>% gather(key = participant_id, value = expression, COVID_01_39y_male_NonICU:NONCOVID_26_36y_male_ICU)
+
+#### I select "charlson_score" as continuous covariate, "sex" and "icu status" as categorical covariates
+new_ser_m <- ser_m %>% select(participant_id, sex, icu_status,charlson_score)
+
+#### merge two two tables with selected variables
+new_data <- merge(new_ser_m,new_gene_long, by = "participant_id")
+head(new_data)
+```
+
+
+```{r cars2}
+#define a theme for all plots
+New_theme <- theme(
+  panel.border = element_blank(),
+  panel.grid.major = element_blank(),
+  panel.grid.minor = element_blank(),
+  # Set plot background
+  plot.background = element_rect(fill = "white"),
+  panel.background = element_blank(),
+  legend.background = element_rect(fill = 'snow2'),
+  legend.text = element_text(color = "black", size = 8),
+  legend.title = element_text(color = "black", face = "bold", size = 8),
+  legend.key = element_rect(fill = "snow2",color = "snow2"),
+  legend.box.background  = element_rect(color = "black"),
+  ##make the title center
+  plot.title = element_text(hjust = 0.5, size = 13, face = "bold"),
+  plot.subtitle = element_text(hjust = 0.5, size = 12, face = "italic"),
+  title = element_text(color = "black"),
+  axis.line = element_line(color = "black"),
+  axis.text = element_text(color = "black"),
+  legend.position = 'right'
+)
+```
+
+
+```{r cars3}
+####Histogram for gene expression 
+ggplot(new_data, aes(x=expression)) + geom_histogram(bins =30, fill = "darkgreen", color = "black", alpha = 0.8)+labs(title = "Distribution of Gene 'ABCA1' Expression",
+       x = "Gene Expression Level",
+       y = "Frequency") + New_theme
+
+```
+
+
+
+
+```{r cars4}
+####Scatterplot for gene expression and continuous covariate
+##I make the color fade from green to tomato
+ggplot(new_data,
+       aes(x = charlson_score, y = expression, color = expression)) + geom_point(size = 2) + labs(
+         title = "Relationship Between ABCA1 Expression and Charlson Index",
+         subtitle = "A visualization of gene expression levels across different Charlson scores",
+         y = 'Gene Expression',
+         x = 'Charlson Comorbidity Index (CCI)',
+         color = 'Gene Expr.'
+       ) + scale_color_gradient(low = "springgreen2", high = "tomato1") + New_theme
+
+```
+
+
+```{r cars5}
+####Boxplot of gene expression separated by both categorical covariates
+ggplot(new_data,aes(x = icu_status ,y = expression,fill = sex)) +geom_boxplot()+ New_theme +labs(
+    title = "Distribution of Gene Expression by ICU Status and Sex",
+    subtitle = "Boxplots showing variation in gene expression across ICU status and sex",
+    x = "ICU Status",
+    y = "Gene Expression Level",
+    fill = "Sex"
+  ) 
+```
+
