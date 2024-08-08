@@ -1,1 +1,2 @@
 # HELLO
+![plot](scat.png)
