@@ -48,11 +48,11 @@ new_ser_m$crp.mg.l. <- as.numeric(new_ser_m$crp.mg.l.)
 
 char <- data.frame(matrix(ncol = 2, nrow = 0),stringsAsFactors = FALSE)
 
-age <- c("Age",paste0(round(mean(new_ser_m[which(new_ser_m$icu_status == ' yes'),]$age,na.rm = TRUE),2),' (',round(sd(new_ser_m[which(new_ser_m$icu_status == ' no'),]$age, na.rm = TRUE),2),')' ), paste0(round(mean(new_ser_m[which(new_ser_m$icu_status == ' yes'),]$age,na.rm = TRUE),2),' (',round(sd(new_ser_m[which(new_ser_m$icu_status == ' no'),]$age, na.rm = TRUE),2),')' ))
+age <- c("Age",paste0(round(mean(new_ser_m[which(new_ser_m$icu_status == ' yes'),]$age,na.rm = TRUE),2),' (',round(sd(new_ser_m[which(new_ser_m$icu_status == ' yes'),]$age, na.rm = TRUE),2),')' ), paste0(round(mean(new_ser_m[which(new_ser_m$icu_status == ' no'),]$age,na.rm = TRUE),2),' (',round(sd(new_ser_m[which(new_ser_m$icu_status == ' no'),]$age, na.rm = TRUE),2),')' ))
 
-fer<-c("Ferritin (ng/mL)",paste0(round(mean(new_ser_m[which(new_ser_m$icu_status == ' yes'),]$ferritin.ng.ml.,na.rm = TRUE),2),' (',round(sd(new_ser_m[which(new_ser_m$icu_status == ' no'),]$ferritin.ng.ml., na.rm = TRUE),2),')' ), paste0(round(mean(new_ser_m[which(new_ser_m$icu_status == ' yes'),]$ferritin.ng.ml.,na.rm = TRUE),2),' (',round(sd(new_ser_m[which(new_ser_m$icu_status == ' no'),]$ferritin.ng.ml., na.rm = TRUE),2),')' ))
+fer<-c("Ferritin (ng/mL)",paste0(round(mean(new_ser_m[which(new_ser_m$icu_status == ' yes'),]$ferritin.ng.ml.,na.rm = TRUE),2),' (',round(sd(new_ser_m[which(new_ser_m$icu_status == ' yes'),]$ferritin.ng.ml., na.rm = TRUE),2),')' ), paste0(round(mean(new_ser_m[which(new_ser_m$icu_status == ' no'),]$ferritin.ng.ml.,na.rm = TRUE),2),' (',round(sd(new_ser_m[which(new_ser_m$icu_status == ' no'),]$ferritin.ng.ml., na.rm = TRUE),2),')' ))
 
-crp <- c("CRP (mg/L)", paste0(round(mean(new_ser_m[which(new_ser_m$icu_status == ' yes'),]$crp.mg.l.,na.rm = TRUE),2),' (',round(sd(new_ser_m[which(new_ser_m$icu_status == ' no'),]$crp.mg.l., na.rm = TRUE),2),')' ), paste0(round(mean(new_ser_m[which(new_ser_m$icu_status == ' yes'),]$crp.mg.l.,na.rm = TRUE),2),' (',round(sd(new_ser_m[which(new_ser_m$icu_status == ' no'),]$crp.mg.l., na.rm = TRUE),2),')' ))
+crp <- c("CRP (mg/L)", paste0(round(mean(new_ser_m[which(new_ser_m$icu_status == ' yes'),]$crp.mg.l.,na.rm = TRUE),2),' (',round(sd(new_ser_m[which(new_ser_m$icu_status == ' yes'),]$crp.mg.l., na.rm = TRUE),2),')' ), paste0(round(mean(new_ser_m[which(new_ser_m$icu_status == ' no'),]$crp.mg.l.,na.rm = TRUE),2),' (',round(sd(new_ser_m[which(new_ser_m$icu_status == ' no'),]$crp.mg.l., na.rm = TRUE),2),')' ))
 
 
 Sex <- c("Sex", "","")
@@ -75,7 +75,7 @@ for(i in sort(unique(cate))){
 names(char) <- c("", "In ICU", "Not In ICU")
 
 tab <- char %>% kbl(format = "latex") %>% kable_classic(c('striped', 'condensed'), full_width = F, font_size = 12) %>%
-  add_header_above(c("ICU Status Stratification" = 3),color="white", background="#7B7B7B")%>% row_spec(4, extra_css = "border-bottom: 1.5px solid black; border-top: 1.5px solid black;")%>% row_spec(8, extra_css = "border-bottom: 1.5px solid black; border-top: 1.5px solid black;")
+  add_header_above(c("ICU Status Stratification (mean (sd))" = 3),color="white", background="#7B7B7B")%>% row_spec(4, extra_css = "border-bottom: 1.5px solid black; border-top: 1.5px solid black;")%>% row_spec(8, extra_css = "border-bottom: 1.5px solid black; border-top: 1.5px solid black;")
 
 tab
 ```
