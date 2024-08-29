@@ -1,0 +1,215 @@
+---
+title: "Final submission"
+author: "Ethan Zhang"
+date: '2024-08-25'
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(knitr) # for base kable function
+library(kableExtra) # for formatting 
+library(pheatmap)
+```
+
+
+```{r}
+new_gene <-
+  read.csv(
+    "/Users/zhyihan/Documents/Dartmouth Life/courses/QBS 103-Data Science/final project/QBS103_GSE157103_genes.csv"
+  )
+ser_m <-
+  read.csv(
+    "/Users/zhyihan/Documents/Dartmouth Life/courses/QBS 103-Data Science/final project/QBS103_GSE157103_series_matrix.csv",stringsAsFactors = FALSE
+  )
+
+new_gene_long <-
+  new_gene %>% gather(
+    key = participant_id,
+    value = expression,
+    COVID_01_39y_male_NonICU:NONCOVID_26_36y_male_ICU
+  )
+
+new_data <- merge(ser_m, new_gene_long, by = "participant_id") 
+new_data <- new_data %>% filter(X == 'ABCA1')
+```
+
+####	Generate a table formatted in LaTeX of summary statistics for all the covariates you looked at and 2 additional continuous (3 total) and 1 additional categorical variable (3 total). (5 pts)
+o	Stratifying by one of your categorical variables
+o	Tables should report n (%) for categorical variables 
+o	Tables should report mean (sd) or median [IQR] for continuous variables
+
+```{r cars1}
+options(warn = -1)
+new_ser_m<- ser_m%>% select("age","ferritin.ng.ml.","crp.mg.l.", "sex", "icu_status", "charlson_score")
+new_ser_m$age <- as.numeric(new_ser_m$age)
+new_ser_m$ferritin.ng.ml. <- as.numeric(new_ser_m$ferritin.ng.ml.)
+new_ser_m$crp.mg.l. <- as.numeric(new_ser_m$crp.mg.l.)
+
+char <- data.frame(matrix(ncol = 2, nrow = 0),stringsAsFactors = FALSE)
+
+age <- c("Age",paste0(round(mean(new_ser_m[which(new_ser_m$icu_status == ' yes'),]$age,na.rm = TRUE),2),' (',round(sd(new_ser_m[which(new_ser_m$icu_status == ' no'),]$age, na.rm = TRUE),2),')' ), paste0(round(mean(new_ser_m[which(new_ser_m$icu_status == ' yes'),]$age,na.rm = TRUE),2),' (',round(sd(new_ser_m[which(new_ser_m$icu_status == ' no'),]$age, na.rm = TRUE),2),')' ))
+
+fer<-c("Ferritin (ng/mL)",paste0(round(mean(new_ser_m[which(new_ser_m$icu_status == ' yes'),]$ferritin.ng.ml.,na.rm = TRUE),2),' (',round(sd(new_ser_m[which(new_ser_m$icu_status == ' no'),]$ferritin.ng.ml., na.rm = TRUE),2),')' ), paste0(round(mean(new_ser_m[which(new_ser_m$icu_status == ' yes'),]$ferritin.ng.ml.,na.rm = TRUE),2),' (',round(sd(new_ser_m[which(new_ser_m$icu_status == ' no'),]$ferritin.ng.ml., na.rm = TRUE),2),')' ))
+
+crp <- c("CRP (mg/L)", paste0(round(mean(new_ser_m[which(new_ser_m$icu_status == ' yes'),]$crp.mg.l.,na.rm = TRUE),2),' (',round(sd(new_ser_m[which(new_ser_m$icu_status == ' no'),]$crp.mg.l., na.rm = TRUE),2),')' ), paste0(round(mean(new_ser_m[which(new_ser_m$icu_status == ' yes'),]$crp.mg.l.,na.rm = TRUE),2),' (',round(sd(new_ser_m[which(new_ser_m$icu_status == ' no'),]$crp.mg.l., na.rm = TRUE),2),')' ))
+
+
+Sex <- c("Sex", "","")
+char <- rbind(char,age,fer,crp,Sex, stringsAsFactors = FALSE)
+
+cate <- new_ser_m$sex
+for(i in unique(cate)){
+  col <- c(i,paste0(round(nrow(new_ser_m[which(new_ser_m$icu_status == ' yes' & cate == i),]),2),' (',round(nrow(new_ser_m[which(new_ser_m$icu_status == ' yes' & cate == i),])/nrow(new_ser_m[which(new_ser_m$icu_status == ' yes'),])*100,2),"%)"),paste0(round(nrow(new_ser_m[which(new_ser_m$icu_status == ' no' & cate == i),]),2),' (',round(nrow(new_ser_m[which(new_ser_m$icu_status == ' no' & cate == i),])/nrow(new_ser_m[which(new_ser_m$icu_status == ' no'),])*100,2),"%)"))
+  char <- rbind(char,col,stringsAsFactors = FALSE)
+}
+
+char <- rbind(char,c("Charlson Score","",""),stringsAsFactors = FALSE)
+
+cate <- new_ser_m$charlson_score
+for(i in sort(unique(cate))){
+  col <- c(i,paste0(round(nrow(new_ser_m[which(new_ser_m$icu_status == ' yes' & cate == i),]),2),' (',round(nrow(new_ser_m[which(new_ser_m$icu_status == ' yes' & cate == i),])/nrow(new_ser_m[which(new_ser_m$icu_status == ' yes'),])*100,2),"%)"),paste0(round(nrow(new_ser_m[which(new_ser_m$icu_status == ' no' & cate == i),]),2),' (',round(nrow(new_ser_m[which(new_ser_m$icu_status == ' no' & cate == i),])/nrow(new_ser_m[which(new_ser_m$icu_status == ' no'),])*100,2),"%)"))
+  char <- rbind(char,col,stringsAsFactors = FALSE)
+}
+
+names(char) <- c("", "In ICU", "Not In ICU")
+
+tab <- char %>% kbl(format = "latex") %>% kable_classic(c('striped', 'condensed'), full_width = F, font_size = 12) %>%
+  add_header_above(c("ICU Status Stratification" = 3),color="white", background="#7B7B7B")%>% row_spec(4, extra_css = "border-bottom: 1.5px solid black; border-top: 1.5px solid black;")%>% row_spec(8, extra_css = "border-bottom: 1.5px solid black; border-top: 1.5px solid black;")
+
+tab
+```
+
+
+```{r cars2}
+#define a theme for all plots
+New_theme <- theme(
+  panel.border = element_blank(),
+  panel.grid.major = element_blank(),
+  panel.grid.minor = element_blank(),
+  # Set plot background
+  plot.background = element_rect(fill = "white"),
+  panel.background = element_blank(),
+  legend.background = element_rect(fill = 'snow2'),
+  legend.text = element_text(color = "black", size = 8),
+  legend.title = element_text(color = "black", face = "bold", size = 8),
+  legend.key = element_rect(fill = "snow2",color = "snow2"),
+  legend.box.background  = element_rect(color = "black"),
+  ##make the title center
+  plot.title = element_text(hjust = 0.5, size = 13, face = "bold"),
+  plot.subtitle = element_text(hjust = 0.5, size = 12, face = "italic"),
+  title = element_text(color = "black"),
+  axis.line = element_line(color = "black"),
+  axis.text = element_text(color = "black"),
+  legend.position = 'right'
+)
+```
+
+
+```{r cars}
+####Histogram for gene expression 
+bar_char <- ggplot(new_data, aes(x=expression)) + geom_histogram(bins =30, fill = "darkgreen", color = "black", alpha = 0.8)+labs(title = "Distribution of Gene 'ABCA1' Expression",
+       x = "Gene Expression Level",
+       y = "Frequency") + New_theme
+
+bar_char
+#ggsave("/Users/zhyihan/Documents/Dartmouth Life/courses/QBS 103-Data Science/final project/final_bar_char.png", plot = bar_char , dpi = 300)
+```
+
+
+```{r cars3}
+####Scatterplot for gene expression and continuous covariate
+##I make the color fade from green to tomato
+new_data$age[!grepl("^[0-9]+$", new_data$age)] <- NA
+new_data<-new_data%>%drop_na()
+new_data$age <- as.character(new_data$age)
+new_data$age <- as.numeric(new_data$age)
+scatter <- ggplot(new_data,
+       aes(x = age, y = expression, color = expression)) + geom_point(size = 2) + labs(
+         title = "Relationship Between ABCA1 Expression and age",
+         subtitle = "A scatterplot of gene expression levels across different ages",
+         y = 'Gene Expression',
+         x = 'Age',
+         color = 'Gene Expr.'
+       ) + scale_color_gradient(low = "springgreen2", high = "tomato1") + New_theme +scale_x_continuous(breaks = seq(min(new_data$age), max(new_data$age), by = 10))
+scatter
+#ggsave("/Users/zhyihan/Documents/Dartmouth Life/courses/QBS 103-Data Science/final project/final_scatter.png", plot = scatter , dpi = 300)
+```
+
+
+
+
+```{r cars4}
+####Boxplot of gene expression separated by both categorical covariates
+box_plot<- ggplot(new_data,aes(x = icu_status ,y = expression,fill = sex)) +geom_boxplot()+ New_theme +labs(
+    title = "Distribution of Gene Expression by ICU Status and Sex",
+    subtitle = "Boxplots showing variation in gene expression across ICU status and sex",
+    x = "ICU Status",
+    y = "Gene Expression Level",
+    fill = "Sex"
+  ) +scale_fill_manual(values = c('royalblue3', 'orange2','pink2'))
+print(box_plot)
+#ggsave("/Users/zhyihan/Documents/Dartmouth Life/courses/QBS 103-Data Science/final project/final_box_plot.png",plot = box_plot,width = 8, height = 8, units = "in", dpi = 300)
+```
+
+
+```{r cars5}
+# Generate heatmap without clustering
+test_data<-new_gene %>% filter(X == 'ABI1'|X =='ABHD2'|X =='ABHD3'|X =='ABHD4'|X =='ABHD5'|X =='ABCG1'|X =='ABCF3'|X =='ABCF1'|X =='ABCA7'|X == 'ABCA1' )
+rownames(test_data) <- test_data$X
+test_data<-test_data[,-1]
+
+
+annotation <- data.frame(
+  `ICU status` = factor(ser_m$icu_status),
+  Sex = factor(ser_m$sex),
+  check.names = FALSE
+)
+rownames(annotation) <- colnames(test_data)
+
+#fill_colors <- colorRampPalette(c('pink2','orange2','royalblue3'))(10)
+
+annot_color <- list(
+  Sex = c(" male" = 'gold2', " female" = 'palegreen3', " unknown" = "salmon"),
+  `ICU status` = c(" yes" = "lavenderblush2", " no" = "lightcoral")
+)
+
+
+# Use pheatmap with the correct color parameter
+heat_map <- pheatmap(
+  test_data,
+  clustering_distance_cols = 'euclidean',
+  clustering_distance_rows = 'euclidean',
+  fontsize_col  = 2,
+  annotation_col = annotation,
+  show_colnames = FALSE,
+  #color = fill_colors,
+  annotation_colors = annot_color
+)
+
+
+
+#ggsave("/Users/zhyihan/Documents/Dartmouth Life/courses/QBS 103-Data Science/final project/final_heatmap.png", plot = heat_map , width = 13, height = 10, units = "in", dpi = 300)
+```
+
+
+```{r cars6}
+###delete unknown sex
+new_data3 <- new_data[which(new_data$sex != ' unknown'),]
+
+# Create violin plot
+violin_plot <- ggplot(new_data3, aes(x = factor(sex), y = expression, fill = factor(sex))) + 
+  geom_violin(trim = FALSE) + 
+  labs(
+    title = "Comparison of Gene Expression Levels by Sex",
+    x = "Sex",
+    y = "Gene Expression",
+    fill = "Sex"
+  ) + 
+  New_theme+ 
+  scale_fill_manual(values = c("skyblue", "pink")) 
+
+# Display the plot
+print(violin_plot)
+#ggsave("/Users/zhyihan/Documents/Dartmouth Life/courses/QBS 103-Data Science/final project/final_violin_plot.png", plot = violin_plot)
+```
