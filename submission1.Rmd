@@ -13,14 +13,14 @@ library(tidyverse)
 ```
 
 ```{r cars}
-new_gene <- read.csv("/Users/zhyihan/Documents/Dartmouth Life/courses/QBS 103- Data Science/final project/QBS103_GSE157103_genes.csv")
-ser_m <-read.csv("/Users/zhyihan/Documents/Dartmouth Life/courses/QBS 103- Data Science/final project/QBS103_GSE157103_series_matrix.csv")
+new_gene <- read.csv("/Users/zhyihan/Documents/Dartmouth Life/courses/QBS 103-Data Science/final project/QBS103_GSE157103_genes.csv")
+ser_m <-read.csv("/Users/zhyihan/Documents/Dartmouth Life/courses/QBS 103-Data Science/final project/QBS103_GSE157103_series_matrix.csv")
 
 #### I select "ABCA1" gene, and then convert wide to long
 new_gene_long <- new_gene %>% filter(X == 'ABCA1') %>% gather(key = participant_id, value = expression, COVID_01_39y_male_NonICU:NONCOVID_26_36y_male_ICU)
 
 #### I select "charlson_score" as continuous covariate, "sex" and "icu status" as categorical covariates
-new_ser_m <- ser_m %>% select(participant_id, sex, icu_status,charlson_score)
+new_ser_m <- ser_m %>% select(participant_id, sex, icu_status,age)
 
 #### merge two two tables with selected variables
 new_data <- merge(new_ser_m,new_gene_long, by = "participant_id")
@@ -67,15 +67,19 @@ ggplot(new_data, aes(x=expression)) + geom_histogram(bins =30, fill = "darkgreen
 ```{r cars4}
 ####Scatterplot for gene expression and continuous covariate
 ##I make the color fade from green to tomato
+class(new_data$expression)
+new_data$age[!grepl("^[0-9]+$", new_data$age)] <- NA
+new_data<-new_data%>%drop_na()
+new_data$age <- as.character(new_data$age)
+new_data$age <- as.numeric(new_data$age)
 ggplot(new_data,
-       aes(x = charlson_score, y = expression, color = expression)) + geom_point(size = 2) + labs(
-         title = "Relationship Between ABCA1 Expression and Charlson Index",
-         subtitle = "A visualization of gene expression levels across different Charlson scores",
+       aes(x = age, y = expression, color = expression)) + geom_point(size = 2) + labs(
+         title = "Relationship Between ABCA1 Expression and age",
+         subtitle = "A scatterplot of gene expression levels across different ages",
          y = 'Gene Expression',
-         x = 'Charlson Comorbidity Index (CCI)',
+         x = 'Age',
          color = 'Gene Expr.'
-       ) + scale_color_gradient(low = "springgreen2", high = "tomato1") + New_theme
-
+       ) + scale_color_gradient(low = "springgreen2", high = "tomato1") + New_theme +scale_x_continuous(breaks = seq(min(new_data$age), max(new_data$age), by = 10)) 
 ```
 
 
@@ -88,5 +92,6 @@ ggplot(new_data,aes(x = icu_status ,y = expression,fill = sex)) +geom_boxplot()+
     y = "Gene Expression Level",
     fill = "Sex"
   ) 
+#ggsave("/Users/zhyihan/Documents/Dartmouth Life/courses/QBS 103- Data Science/final project/scat.png",plot = new_scat,width = 16, height = 9)
 ```
 
